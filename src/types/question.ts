@@ -29,4 +29,6 @@ export interface Question {
     ) => boolean;
 
     why?: string;
+    skipAllowed?: boolean;
+    skipLabel?: string;
 }

@@ -1,163 +1,194 @@
-import React, { useState } from 'react';
-import { mustQuestions } from '../questions/mustQuestions';
-import { additionalQuestions } from '../questions/additionalQuestions';
-import { Question } from '../types';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { ProgressBar } from '../components/ui/ProgressBar';
+import { useMemo, useState } from "react";
+import { mustQuestions } from "../questions/mustQuestions";
+import { additionalQuestions } from "../questions/additionalQuestions";
+import { Question } from "../types";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { ProgressBar } from "../components/ui/ProgressBar";
+import { OptionChips } from "../components/ui/OptionChips";
+import { UNKNOWN_SENTINEL } from "../rules/mapAnswers";
 
 interface AssessmentProps {
-  onComplete: (answers: Record<string, any>) => void;
+  onComplete: (answers: Record<string, unknown>) => void;
+  initialAnswers?: Record<string, unknown>;
 }
 
-export const Assessment: React.FC<AssessmentProps> = ({ onComplete }) => {
-  const [answers, setAnswers] = useState<Record<string, any>>({
-    incomeType: 'salaried',
-    creditScoreBand: '750+',
-    existingEMI: 0,
-    householdExpenses: 0,
-    requestedAmount: 500000,
-    monthlyIncome: 75000,
-    age: 28,
-  });
-  const [currentIndex, setCurrentIndex] = useState(0);
+type Phase = "must" | "gate" | "extra";
 
-  // Combine and filter active questions dynamically
-  const allQuestions = [...mustQuestions, ...additionalQuestions];
-  const activeQuestions = allQuestions.filter(
-    (q) => !q.showWhen || q.showWhen(answers)
+export function Assessment({ onComplete, initialAnswers }: AssessmentProps) {
+  const [answers, setAnswers] = useState<Record<string, unknown>>(initialAnswers ?? {});
+  const [phase, setPhase] = useState<Phase>("must");
+  const [index, setIndex] = useState(0);
+
+  const extraVisible = useMemo(
+    () => additionalQuestions.filter((q) => !q.showWhen || q.showWhen(answers)),
+    [answers]
   );
 
-  const currentQuestion: Question | undefined = activeQuestions[currentIndex] || activeQuestions[0];
+  const queue = phase === "must" ? mustQuestions : extraVisible;
+  const current: Question | undefined = queue[index];
+  const totalMust = mustQuestions.length;
+  const progress =
+    phase === "must"
+      ? ((index + 1) / (totalMust + extraVisible.length)) * 100
+      : ((totalMust + index + 1) / (totalMust + extraVisible.length)) * 100;
 
-  const handleFieldValueChange = (field: string, val: any) => {
+  const setField = (field: string, val: unknown) => {
     setAnswers((prev) => ({ ...prev, [field]: val }));
   };
 
-  const handleNext = () => {
-    if (currentIndex < activeQuestions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      onComplete(answers);
-    }
+  const value = current ? answers[current.field] : undefined;
+  const hasValue =
+    value !== undefined &&
+    value !== "" &&
+    value !== UNKNOWN_SENTINEL &&
+    !(current?.type === "currency" && value === undefined);
+
+  const goNextMust = () => {
+    if (index < mustQuestions.length - 1) setIndex(index + 1);
+    else setPhase("gate");
   };
 
-  const handleBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
+  const goNextExtra = () => {
+    if (index < extraVisible.length - 1) setIndex(index + 1);
+    else onComplete(answers);
   };
 
-  if (!currentQuestion) return null;
+  const skipExtra = () => {
+    if (!current) return;
+    setField(current.field, UNKNOWN_SENTINEL);
+    goNextExtra();
+  };
 
-  const currentVal = answers[currentQuestion.field] ?? '';
+  if (phase === "gate") {
+    return (
+      <div className="page-narrow">
+        <div className="card">
+          <p className="kicker">Must questions done</p>
+          <h2 className="h2">We can score this now, with wide bands.</h2>
+          <p className="muted">
+            A few more questions each move a number: documented income, property, bounces, dependents,
+            savings. Skip any you do not know — unknown is not treated as zero.
+          </p>
+          <div className="row-gap" style={{ marginTop: "1.5rem" }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setPhase("extra");
+                setIndex(0);
+              }}
+            >
+              Tighten the ranges
+            </Button>
+            <Button variant="secondary" onClick={() => onComplete(answers)}>
+              See estimate now
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!current) {
+    return (
+      <div className="page-narrow">
+        <div className="card">
+          <h2 className="h2">No further questions apply.</h2>
+          <Button variant="primary" onClick={() => onComplete(answers)}>
+            See results
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: '640px', margin: '2.5rem auto', padding: '0 1rem' }}>
-      {/* Step counter & progress bar */}
-      <div style={{ marginBottom: '1.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-          <span style={{ fontWeight: 600, color: '#818cf8' }}>
-            Question {currentIndex + 1} of {activeQuestions.length}
+    <div className="page-narrow">
+      <div style={{ marginBottom: "1.25rem" }}>
+        <div className="progress-meta">
+          <span>
+            {phase === "must" ? "Must" : "Tightening"} · {index + 1} of {queue.length}
           </span>
-          <span>{Math.round(((currentIndex + 1) / activeQuestions.length) * 100)}% Complete</span>
+          <span>{Math.round(progress)}%</span>
         </div>
-        <ProgressBar progress={((currentIndex + 1) / activeQuestions.length) * 100} />
+        <ProgressBar progress={progress} />
       </div>
 
-      {/* Question Card */}
-      <div
-        style={{
-          backgroundColor: '#131b2e',
-          border: '1px solid #1e293b',
-          borderRadius: '1rem',
-          padding: '2rem',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-        }}
-      >
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f8fafc', marginBottom: '0.35rem' }}>
-          {currentQuestion.title}
-        </h2>
-        
-        {currentQuestion.description && (
-          <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
-            {currentQuestion.description}
-          </p>
-        )}
+      <div className="card">
+        <h2 className="question-title">{current.title}</h2>
+        {current.description && <p className="muted">{current.description}</p>}
 
-        {/* Question Inputs */}
-        <div style={{ marginTop: '1.25rem', marginBottom: '1.5rem' }}>
-          {currentQuestion.type === 'select' && currentQuestion.options ? (
-            <Select
-              options={currentQuestion.options}
-              value={String(currentVal)}
-              onChange={(e) => handleFieldValueChange(currentQuestion.field, e.target.value)}
+        <div style={{ margin: "1.25rem 0" }}>
+          {current.type === "select" && current.options ? (
+            <OptionChips
+              options={current.options}
+              value={value as string | number | undefined}
+              onChange={(v) => setField(current.field, v)}
             />
-          ) : currentQuestion.type === 'boolean' ? (
-            <Select
+          ) : current.type === "boolean" ? (
+            <OptionChips
               options={[
-                { label: 'Yes', value: 'true' },
-                { label: 'No', value: 'false' },
+                { label: "Yes", value: true },
+                { label: "No", value: false },
               ]}
-              value={String(currentVal)}
-              onChange={(e) => handleFieldValueChange(currentQuestion.field, e.target.value === 'true')}
-            />
-          ) : currentQuestion.type === 'currency' ? (
-            <Input
-              type="number"
-              prefixSymbol="₹"
-              placeholder="e.g. 50000"
-              value={currentVal}
-              onChange={(e) => handleFieldValueChange(currentQuestion.field, Number(e.target.value))}
+              value={value as boolean | undefined}
+              onChange={(v) => setField(current.field, v)}
             />
           ) : (
             <Input
-              type={currentQuestion.type === 'number' ? 'number' : 'text'}
-              value={currentVal}
-              onChange={(e) =>
-                handleFieldValueChange(
-                  currentQuestion.field,
-                  currentQuestion.type === 'number' ? Number(e.target.value) : e.target.value
-                )
-              }
+              type="number"
+              prefixSymbol={current.type === "currency" ? "₹" : undefined}
+              placeholder={current.type === "currency" ? "0" : ""}
+              value={value === undefined || value === UNKNOWN_SENTINEL ? "" : String(value)}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setField(current.field, raw === "" ? undefined : Number(raw));
+              }}
             />
           )}
         </div>
 
-        {/* Why this question banner */}
-        {currentQuestion.why && (
-          <div
-            style={{
-              backgroundColor: 'rgba(99, 102, 241, 0.08)',
-              borderLeft: '3px solid #6366f1',
-              padding: '0.75rem 1rem',
-              borderRadius: '0.375rem',
-              fontSize: '0.825rem',
-              color: '#a5b4fc',
-              lineHeight: 1.4,
-            }}
-          >
-            <strong>Why we ask:</strong> {currentQuestion.why}
+        {current.why && (
+          <div className="why-box">
+            <strong>Why this moves a number:</strong> {current.why}
           </div>
         )}
 
-        {/* Navigation Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #1e293b' }}>
+        <div className="nav-row">
           <Button
             variant="secondary"
-            onClick={handleBack}
-            disabled={currentIndex === 0}
-            style={{ opacity: currentIndex === 0 ? 0.4 : 1 }}
+            disabled={phase === "must" && index === 0}
+            onClick={() => {
+              if (index > 0) setIndex(index - 1);
+              else if (phase === "extra") setPhase("gate");
+            }}
           >
-            ← Back
+            Back
           </Button>
-
-          <Button variant="primary" onClick={handleNext}>
-            {currentIndex === activeQuestions.length - 1 ? 'Calculate Assessment →' : 'Continue →'}
-          </Button>
+          <div className="row-gap">
+            {phase === "extra" && current.skipAllowed && (
+              <Button variant="outline" onClick={skipExtra}>
+                Skip — keep the range wide
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              disabled={!hasValue && current.required !== false}
+              onClick={() => {
+                if (phase === "extra" && !hasValue) {
+                  skipExtra();
+                  return;
+                }
+                phase === "must" ? goNextMust() : goNextExtra();
+              }}
+            >
+              {phase === "extra" && index === extraVisible.length - 1
+                ? "See results"
+                : "Continue"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
-};
+}

@@ -1,50 +1,49 @@
-export type IncomeType =
-    | "salaried"
-    | "self-employed"
-    | "informal";
+export type IncomeType = "salaried" | "self-employed" | "informal";
 
 export type CreditScoreBand =
-    | "750+"
-    | "700-749"
-    | "650-699"
-    | "below-650"
-    | "unknown";
+  | "750+"
+  | "700-749"
+  | "650-699"
+  | "below-650"
+  | "unknown";
+
+export type LoanTypeChoice =
+  | "personal"
+  | "home"
+  | "lap"
+  | "gold"
+  | "two-wheeler"
+  | "business"
+  | "unknown";
 
 export interface BorrowerProfile {
-    age: number;
+  age: number;
+  loanPurpose: string;
+  loanType: LoanTypeChoice;
+  requestedAmount: number;
+  incomeType: IncomeType;
+  monthlyIncome: number;
+  documentedAnnualIncome?: number;
+  existingEMI: number;
+  householdExpenses: number;
+  creditScoreBand: CreditScoreBand;
+  emergencySavingsMonths?: number;
+  employmentYears?: number;
+  incomeStable?: boolean;
+  businessYears?: number;
+  propertyValue?: number;
+  goldValue?: number;
+  existingLoans?: number;
+  missedPayments?: number;
+  expectedAdditionalIncome?: number;
+  variableIncomeShare?: number;
+  coApplicantIncome?: number;
+  dependents?: number;
+  cardUtilisation?: number;
+  offerRate?: number;
+  unknownFields: string[];
+}
 
-    loanPurpose: string;
-    loanType: string;
-    requestedAmount: number;
-
-    incomeType: IncomeType;
-    monthlyIncome: number;
-
-    documentedAnnualIncome?: number;
-
-    existingEMI: number;
-    householdExpenses: number;
-
-    creditScore?: number;
-    creditScoreBand: CreditScoreBand;
-
-    emergencySavingsMonths?: number;
-
-    // Salaried
-    employmentYears?: number;
-    incomeStable?: boolean;
-
-    // Self-employed
-    businessYears?: number;
-    propertyValue?: number;
-
-    // Existing debt
-    existingLoans?: number;
-    missedPayments?: number;
-
-    // Income-producing loan
-    expectedAdditionalIncome?: number;
-
-    // Informal / variable income
-    variableIncomeShare?: number;
+export function isUnknown(profile: BorrowerProfile, field: string): boolean {
+  return profile.unknownFields.includes(field);
 }

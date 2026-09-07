@@ -1,137 +1,201 @@
 import { Question } from "../types";
 
+/**
+ * Every question here must move an output. See RULES.md § additional questions.
+ */
 export const additionalQuestions: Question[] = [
-    // ─────────────
-    // SALARIED
-    // ─────────────
-
-    {
-        id: "employment-years",
-        type: "number",
-        title: "How long have you been with your current employer?",
-        required: true,
-        field: "employmentYears",
-        showWhen: (answers) =>
-            answers.incomeType === "salaried",
-        why: "Longer employment history can provide evidence of income stability.",
-    },
-
-    {
-        id: "income-stability-salaried",
-        type: "boolean",
-        title: "Has your income been broadly stable over the past year?",
-        required: true,
-        field: "incomeStable",
-        showWhen: (answers) =>
-            answers.incomeType === "salaried",
-        why: "Stable income makes future repayment capacity easier to estimate.",
-    },
-
-    // ─────────────
-    // SELF-EMPLOYED
-    // ─────────────
-
-    {
-        id: "business-years",
-        type: "number",
-        title: "How long have you been running your business?",
-        required: true,
-        field: "businessYears",
-        showWhen: (answers) =>
-            answers.incomeType === "self-employed",
-        why: "Business history provides context for the reliability of reported income.",
-    },
-
-    {
-        id: "documented-income",
-        type: "currency",
-        title: "What is your documented annual income?",
-        description: "Use your latest ITR or other formal income documentation.",
-        required: true,
-        field: "documentedAnnualIncome",
-        showWhen: (answers) =>
-            answers.incomeType === "self-employed",
-        why: "Documented income may differ from cash flow and can affect lender eligibility.",
-    },
-
-    {
-        id: "property-value",
-        type: "currency",
-        title: "Do you have property that could potentially secure the loan?",
-        description: "Enter its approximate current value, or 0 if none.",
-        required: true,
-        field: "propertyValue",
-        showWhen: (answers) =>
-            answers.incomeType === "self-employed" ||
-            answers.loanType === "lap" ||
-            answers.loanType === "business",
-        why: "Collateral can make a secured loan a potential alternative when an unsecured loan is less suitable.",
-    },
-
-    // ─────────────
-    // INFORMAL / GIG
-    // ─────────────
-
-    {
-        id: "variable-income-share",
-        type: "select",
-        title: "How much of your monthly income varies from month to month?",
-        required: true,
-        field: "variableIncomeShare",
-        showWhen: (answers) =>
-            answers.incomeType === "informal",
-        options: [
-            { label: "Almost none", value: 0 },
-            { label: "Less than 25%", value: 0.25 },
-            { label: "25–50%", value: 0.5 },
-            { label: "More than 50%", value: 0.75 },
-            { label: "Almost all of it", value: 1 },
-        ],
-        why: "Higher income variability makes future repayment capacity less predictable.",
-    },
-
-    {
-        id: "missed-payments",
-        type: "number",
-        title: "How many loan payments have you missed or bounced in the last 12 months?",
-        description: "Enter 0 if none.",
-        required: true,
-        field: "missedPayments",
-        showWhen: (answers) =>
-            answers.incomeType === "informal" ||
-            Number(answers.existingEMI) > 0,
-        why: "Recent missed payments are a warning sign that the current debt load may already be difficult to manage.",
-    },
-
-    // ─────────────
-    // EXISTING DEBT
-    // ─────────────
-
-    {
-        id: "existing-loans",
-        type: "number",
-        title: "How many active loans do you currently have?",
-        required: true,
-        field: "existingLoans",
-        showWhen: (answers) =>
-            Number(answers.existingEMI) > 0,
-        why: "Multiple active loans can increase repayment complexity and financial pressure.",
-    },
-
-    // ─────────────
-    // PRODUCTIVE LOAN
-    // ─────────────
-
-    {
-        id: "productive-income",
-        type: "currency",
-        title: "How much additional monthly income do you realistically expect this loan to generate?",
-        description: "Enter 0 if it won't directly generate income.",
-        required: true,
-        field: "expectedAdditionalIncome",
-        showWhen: (answers) =>
-            answers.loanPurpose === "business" ||
-            answers.loanPurpose === "vehicle",
-        why: "A productive loan may increase repayment capacity if the expected additional income is realistic.",
-    },
+  {
+    id: "employment-years",
+    type: "number",
+    title: "Years with your current employer?",
+    required: false,
+    skipAllowed: true,
+    field: "employmentYears",
+    showWhen: (answers) => answers.incomeType === "salaried",
+    why: "Moves the fair-rate band and lender FOIR. Under 1 year is treated as less stable.",
+  },
+  {
+    id: "income-stability-salaried",
+    type: "boolean",
+    title: "Has your take-home been broadly stable for a year?",
+    required: false,
+    skipAllowed: true,
+    field: "incomeStable",
+    showWhen: (answers) => answers.incomeType === "salaried",
+    why: "If no, safe FOIR drops 5 points and the rate band widens up.",
+  },
+  {
+    id: "card-utilisation",
+    type: "select",
+    title: "Rough credit-card utilisation?",
+    description: "Balance as a share of limit, across cards.",
+    required: false,
+    skipAllowed: true,
+    field: "cardUtilisation",
+    showWhen: (answers) =>
+      answers.incomeType === "salaried" && answers.creditScoreBand !== "unknown",
+    options: [
+      { label: "Under 30%", value: 0.2 },
+      { label: "30–70%", value: 0.5 },
+      { label: "Over 70%", value: 0.8 },
+      { label: "No card", value: 0 },
+    ],
+    why: "Utilisation over 70% adds to the rate band and trims lender FOIR.",
+  },
+  {
+    id: "business-years",
+    type: "number",
+    title: "How many years has this business been running?",
+    required: false,
+    skipAllowed: true,
+    field: "businessYears",
+    showWhen: (answers) => answers.incomeType === "self-employed",
+    why: "Under 3 years cuts lender FOIR. 10+ years on LAP trims the rate.",
+  },
+  {
+    id: "documented-income",
+    type: "currency",
+    title: "Documented annual income (latest ITR)?",
+    description: "What the return shows, not what the till collected.",
+    required: false,
+    skipAllowed: true,
+    field: "documentedAnnualIncome",
+    showWhen: (answers) => answers.incomeType === "self-employed",
+    why: "This is the income a bank will use. Cash above ITR does not raise likely sanction in this model.",
+  },
+  {
+    id: "property-value",
+    type: "currency",
+    title: "Unencumbered property you could pledge?",
+    description: "Approximate market value. 0 if none or you will not pledge it.",
+    required: false,
+    skipAllowed: true,
+    field: "propertyValue",
+    showWhen: (answers) =>
+      answers.incomeType === "self-employed" ||
+      answers.loanType === "lap" ||
+      answers.loanType === "business" ||
+      answers.loanPurpose === "business",
+    why: "Can switch the product to LAP and cap amount at 50% LTV — often the whole point for a shop owner.",
+  },
+  {
+    id: "co-applicant",
+    type: "currency",
+    title: "Co-applicant's monthly take-home?",
+    description: "Spouse or parent who would sign. 0 if you are applying alone.",
+    required: false,
+    skipAllowed: true,
+    field: "coApplicantIncome",
+    showWhen: (answers) =>
+      answers.incomeType === "self-employed" || answers.incomeType === "informal",
+    why: "Adds 80% of that income to both FOIR views. This is how a teaching spouse changes Ravi's ceiling.",
+  },
+  {
+    id: "variable-income-share",
+    type: "select",
+    title: "How much of a month's income is unreliable?",
+    required: false,
+    skipAllowed: true,
+    field: "variableIncomeShare",
+    showWhen: (answers) =>
+      answers.incomeType === "informal" || answers.incomeType === "self-employed",
+    options: [
+      { label: "Almost none", value: 0 },
+      { label: "About a quarter", value: 0.25 },
+      { label: "About half", value: 0.5 },
+      { label: "Most of it", value: 0.75 },
+    ],
+    why: "Haircuts borrower (and gig lender) income by 40% of that share — widens 'how much'.",
+  },
+  {
+    id: "dependents",
+    type: "select",
+    title: "How many people depend on this income?",
+    description: "Children, unemployed spouse, parents you fully support.",
+    required: false,
+    skipAllowed: true,
+    field: "dependents",
+    options: [
+      { label: "Just me", value: 0 },
+      { label: "1", value: 1 },
+      { label: "2", value: 2 },
+      { label: "3 or more", value: 3 },
+    ],
+    showWhen: () => true,
+    why: "Raises the residual cash floor by ₹2,500 each, which cuts the EMI ceiling.",
+  },
+  {
+    id: "emergency-savings",
+    type: "select",
+    title: "Emergency savings, in months of expenses?",
+    required: false,
+    skipAllowed: true,
+    field: "emergencySavingsMonths",
+    options: [
+      { label: "Less than 1 month", value: 0.5 },
+      { label: "1–3 months", value: 2 },
+      { label: "3–6 months", value: 4.5 },
+      { label: "6+ months", value: 7 },
+      { label: "I don't know", value: -1 },
+    ],
+    why: "Under 1 month drops safe FOIR 5 points. Unknown is not treated as zero.",
+  },
+  {
+    id: "missed-payments",
+    type: "number",
+    title: "Bounces or missed EMIs in the last 12 months?",
+    description: "0 if none.",
+    required: false,
+    skipAllowed: true,
+    field: "missedPayments",
+    showWhen: (answers) =>
+      answers.incomeType === "informal" || Number(answers.existingEMI) > 0,
+    why: "One or more can flip the verdict to Don't borrow on unsecured/gig credit and reprice the band.",
+  },
+  {
+    id: "existing-loans",
+    type: "number",
+    title: "How many live loans (including app loans)?",
+    required: false,
+    skipAllowed: true,
+    field: "existingLoans",
+    showWhen: (answers) => Number(answers.existingEMI) > 0,
+    why: "Three or more drops safe FOIR 5 points — stacking is the risk, not only the rupee EMI.",
+  },
+  {
+    id: "productive-income",
+    type: "currency",
+    title: "Extra monthly income this loan could realistically earn?",
+    description: "Stock, a scooter for more orders, a machine. 0 if it will not earn.",
+    required: false,
+    skipAllowed: true,
+    field: "expectedAdditionalIncome",
+    showWhen: (answers) =>
+      answers.loanPurpose === "business" || answers.loanPurpose === "vehicle",
+    why: "Only 50% of that figure is added to your safe income. Lenders still ignore it until it shows in bank credits.",
+  },
+  {
+    id: "gold-value",
+    type: "currency",
+    title: "Gold you could pledge (current value)?",
+    description: "0 if none.",
+    required: false,
+    skipAllowed: true,
+    field: "goldValue",
+    showWhen: (answers) =>
+      answers.loanType === "gold" ||
+      answers.incomeType === "informal" ||
+      answers.loanPurpose === "medical",
+    why: "Can route to a gold loan and cap amount at 75% LTV — a different rate band than personal.",
+  },
+  {
+    id: "offer-rate",
+    type: "number",
+    title: "If you already have an offer, what rate did they quote?",
+    description: "Annual % they said. Skip if none.",
+    required: false,
+    skipAllowed: true,
+    field: "offerRate",
+    why: "Does not change our fair band. It is printed on the card so you can compare their quote with our APR.",
+  },
 ];

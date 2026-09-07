@@ -1,7 +1,7 @@
-import React from 'react';
-import { AssessmentResult } from '../types';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { AssessmentResult } from "../types";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { formatINR, formatPct } from "../lib/format";
 
 interface ResultsProps {
   result: AssessmentResult;
@@ -9,148 +9,140 @@ interface ResultsProps {
   onReevaluate: () => void;
 }
 
-export const Results: React.FC<ResultsProps> = ({ result, onNavigateToNegotiation, onReevaluate }) => {
-  const formatINR = (val: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
-
-  const decisionBadgeVariant =
-    result.decision === 'borrow' ? 'success' : result.decision === 'borrow-less' ? 'warning' : 'danger';
-
-  const confidenceBadgeVariant =
-    result.confidence === 'high' ? 'success' : result.confidence === 'medium' ? 'warning' : 'danger';
+export function Results({ result, onNavigateToNegotiation, onReevaluate }: ResultsProps) {
+  const decisionVariant =
+    result.decision === "borrow" ? "success" : result.decision === "borrow-less" ? "warning" : "danger";
+  const confVariant =
+    result.confidence === "high" ? "success" : result.confidence === "medium" ? "warning" : "danger";
 
   return (
-    <div style={{ maxWidth: '850px', margin: '2rem auto', padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      {/* Header Banner */}
-      <div
-        style={{
-          display: 'flex',
-          justify: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          backgroundColor: '#131b2e',
-          border: '1px solid #1e293b',
-          borderRadius: '1rem',
-          padding: '1.5rem',
-        }}
-      >
+    <div className="page-mid stack">
+      <div className="card split-head">
         <div>
-          <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Underwriting Assessment
-          </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: '0.25rem' }}>
-            Loan Evaluation Results
-          </h2>
+          <p className="kicker">Self-assessment · not a sanction</p>
+          <h2 className="h2">Your four numbers</h2>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Badge variant={decisionBadgeVariant}>{result.decision.toUpperCase()}</Badge>
-          <Badge variant={confidenceBadgeVariant}>{result.confidence.toUpperCase()} CONFIDENCE</Badge>
+        <div className="row-gap">
+          <Badge variant={decisionVariant}>{result.decisionLabel}</Badge>
+          <Badge variant={confVariant}>{result.confidence} confidence</Badge>
         </div>
       </div>
 
-      {/* Decision Card */}
       <div
+        className="card"
         style={{
-          backgroundColor: '#131b2e',
           borderLeft: `4px solid ${
-            result.decision === 'borrow' ? '#10b981' : result.decision === 'borrow-less' ? '#f59e0b' : '#ef4444'
+            result.decision === "borrow" ? "#10b981" : result.decision === "borrow-less" ? "#f59e0b" : "#ef4444"
           }`,
-          borderRadius: '0.75rem',
-          padding: '1.5rem',
         }}
       >
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', marginBottom: '0.5rem' }}>
-          Recommendation Summary
-        </h3>
-        <p style={{ fontSize: '0.95rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-          {result.decisionReason}
+        <h3 className="h3">O1 · Should you borrow?</h3>
+        <p className="body">{result.decisionReason}</p>
+        <p className="muted" style={{ marginTop: "0.75rem" }}>
+          Product: <strong>{result.product.name}</strong> — {result.product.reason}
         </p>
       </div>
 
-      {/* Amounts Grid: Safe Carry vs Lender Sanction */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-        <div style={{ backgroundColor: '#131b2e', border: '1px solid #1e293b', borderRadius: '0.875rem', padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.05em' }}>
-            SAFE BORROWER AMOUNT
-          </span>
-          <h3 style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc', marginTop: '0.35rem' }}>
-            {formatINR(result.amount.safeCarry)}
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            <strong>Why:</strong> {result.amount.whySafeCarry}
+      <div className="two-col">
+        <div className="card">
+          <p className="label-safe">O2 · Your number (use this)</p>
+          <p className="big-num">{formatINR(result.amount.safeCarry)}</p>
+          <p className="range">
+            Band {formatINR(result.amount.safeCarryLow)} – {formatINR(result.amount.safeCarryHigh)}
           </p>
+          <p className="muted">{result.amount.whySafeCarry}</p>
         </div>
-
-        <div style={{ backgroundColor: '#131b2e', border: '1px solid #1e293b', borderRadius: '0.875rem', padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#818cf8', fontWeight: 700, letterSpacing: '0.05em' }}>
-            MAX LIKELY LENDER SANCTION
-          </span>
-          <h3 style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc', marginTop: '0.35rem' }}>
-            {formatINR(result.amount.likelySanction)}
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            <strong>Why:</strong> {result.amount.whySanction}
+        <div className="card">
+          <p className="label-lender">O2 · Lender&apos;s likely sanction</p>
+          <p className="big-num">{formatINR(result.amount.likelySanction)}</p>
+          <p className="range">
+            Band {formatINR(result.amount.likelySanctionLow)} – {formatINR(result.amount.likelySanctionHigh)}
           </p>
+          <p className="muted">{result.amount.whySanction}</p>
+        </div>
+      </div>
+      <p className="callout">{result.amount.whyUseThis}</p>
+
+      <div className="two-col">
+        <div className="card">
+          <p className="label-rate">O3 · Fair rate (band, not a point)</p>
+          <p className="big-num">
+            {formatPct(result.rate.fairMin)} – {formatPct(result.rate.fairMax)}
+          </p>
+          <p className="range">
+            All-in APR {formatPct(result.rate.aprMin)} – {formatPct(result.rate.aprMax)} including ~
+            {result.rate.processingFeePercent}% fee + GST ({formatINR(result.rate.processingFeeWithGst)})
+          </p>
+          <p className="muted">{result.rate.why}</p>
+          {result.theirOfferRate != null && (
+            <p className="callout" style={{ marginTop: "0.75rem" }}>
+              Their quote {formatPct(result.theirOfferRate)} vs this band.{" "}
+              {result.theirOfferRate > result.rate.fairMax
+                ? "Walk away or switch product — it is above fair."
+                : "Inside or near the band."}
+            </p>
+          )}
+        </div>
+        <div className="card">
+          <p className="label-emi">O4 · EMI ceiling</p>
+          <p className="big-num">
+            {formatINR(result.emi.recommendedEMI)}
+            <span className="unit"> / mo</span>
+          </p>
+          <p className="range">Do not cross {formatINR(result.emi.maximumEMI)} · {result.emi.tenureMonths} months</p>
+          <p className="muted">{result.emi.why}</p>
         </div>
       </div>
 
-      {/* Pricing & EMI Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-        <div style={{ backgroundColor: '#131b2e', border: '1px solid #1e293b', borderRadius: '0.875rem', padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700, letterSpacing: '0.05em' }}>
-            FAIR RATE & ALL-IN APR
-          </span>
-          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: '0.35rem' }}>
-            {result.rate.expectedRate.toFixed(2)}% <span style={{ fontSize: '0.95rem', color: '#94a3b8' }}>({result.rate.apr.toFixed(2)}% APR)</span>
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            Includes {result.rate.processingFee}% processing fee ({formatINR(result.rate.processingFeeAmount)}) + 18% GST per RBI disclosures.
-          </p>
-        </div>
-
-        <div style={{ backgroundColor: '#131b2e', border: '1px solid #1e293b', borderRadius: '0.875rem', padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: 700, letterSpacing: '0.05em' }}>
-            RECOMMENDED MONTHLY EMI
-          </span>
-          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc', marginTop: '0.35rem' }}>
-            {formatINR(result.emi.recommendedEMI)} <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>/ month</span>
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            <strong>Max EMI Ceiling:</strong> {formatINR(result.emi.maximumEMI)} ({result.emi.why})
-          </p>
+      <div className="card">
+        <h3 className="h3">Tenure trade-off</h3>
+        <div className="tenure-table">
+          {result.emi.tenureOptions.map((t) => (
+            <div
+              key={t.months}
+              className={t.months === result.emi.tenureMonths ? "tenure-row on" : "tenure-row"}
+            >
+              <span>{t.months / 12} yr</span>
+              <span>{formatINR(t.emi)}/mo</span>
+              <span className="muted">interest {formatINR(t.totalInterest)}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Stress Test */}
-      <div style={{ backgroundColor: '#131b2e', border: '1px solid #1e293b', borderRadius: '0.875rem', padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
-            Rate Shock Stress Test (+2.0% Spike)
-          </h4>
-          <Badge variant={result.stressTest.passes ? 'success' : 'danger'}>
-            {result.stressTest.passes ? 'STRESS TEST PASSED' : 'STRESS TEST FAILED'}
+      <div className="card">
+        <div className="split-head">
+          <h3 className="h3">Stress · {result.stressTest.scenario}</h3>
+          <Badge variant={result.stressTest.passes ? "success" : "danger"}>
+            {result.stressTest.passes ? "Holds" : "Breaks"}
           </Badge>
         </div>
-        <p style={{ fontSize: '0.9rem', color: '#cbd5e1', marginTop: '0.75rem', lineHeight: 1.5 }}>
-          {result.stressTest.explanation}
+        <p className="body">{result.stressTest.explanation}</p>
+      </div>
+
+      <div className="card">
+        <h3 className="h3">Confidence</h3>
+        <p className="body">{result.confidenceReason}</p>
+        {result.unknowns.length > 0 && (
+          <ul className="plain-list">
+            {result.unknowns.map((u) => (
+              <li key={u}>{u}</li>
+            ))}
+          </ul>
+        )}
+        <p className="muted" style={{ marginTop: "0.75rem" }}>
+          Guessing on purpose: {result.assumptions.join(" ")}
         </p>
       </div>
 
-      {/* Action Footer */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+      <div className="nav-row">
         <Button variant="secondary" onClick={onReevaluate}>
-          ← Re-evaluate Inputs
+          Change answers
         </Button>
         <Button variant="primary" onClick={onNavigateToNegotiation}>
-          Open Negotiation Card →
+          Negotiation card
         </Button>
       </div>
     </div>
   );
-};
+}
