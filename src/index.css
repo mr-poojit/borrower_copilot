@@ -1,13 +1,16 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 :root {
-  --font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --bg-dark: #090d16;
-  --card-bg: #131b2e;
-  --card-border: #1e293b;
-  --primary: #6366f1;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --font-family: "DM Sans", system-ui, sans-serif;
+  --display-family: "Space Grotesk", "DM Sans", sans-serif;
+  --bg-dark: #101514;
+  --card-bg: #18201e;
+  --card-border: #2c3934;
+  --primary: #f4b942;
+  --primary-strong: #d89216;
+  --mint: #8bd3b2;
+  --text-main: #f4f1e8;
+  --text-muted: #aab5ae;
 }
 
 * {
@@ -22,9 +25,11 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  background-image:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 10% 0%, rgba(244, 185, 66, 0.12), transparent 30rem),
+    radial-gradient(circle at 90% 85%, rgba(139, 211, 178, 0.1), transparent 28rem);
+  background-size: 32px 32px, 32px 32px, auto, auto;
   background-attachment: fixed;
 }
 
@@ -39,6 +44,12 @@ button:disabled {
   opacity: 0.45;
 }
 
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(244, 185, 66, 0.42);
+  outline-offset: 2px;
+}
+
 .app-shell {
   min-height: 100vh;
 }
@@ -47,7 +58,7 @@ button:disabled {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(9, 13, 22, 0.92);
+  background: rgba(16, 21, 20, 0.9);
   border-bottom: 1px solid var(--card-border);
   backdrop-filter: blur(10px);
 }
@@ -55,7 +66,7 @@ button:disabled {
 .topbar-inner {
   max-width: 960px;
   margin: 0 auto;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -70,7 +81,8 @@ button:disabled {
   background: none;
   border: none;
   color: #fff;
-  font-weight: 800;
+  font-family: var(--display-family);
+  font-weight: 700;
   font-size: 1.05rem;
 }
 
@@ -78,7 +90,8 @@ button:disabled {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1, #10b981);
+  background: var(--primary);
+  color: #19140a;
   display: grid;
   place-items: center;
 }
@@ -87,7 +100,7 @@ button:disabled {
   display: flex;
   gap: 0.25rem;
   padding: 0.2rem;
-  background: #090d16;
+  background: #0c1110;
   border: 1px solid var(--card-border);
   border-radius: 0.6rem;
 }
@@ -95,7 +108,7 @@ button:disabled {
 .tab {
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: #aab5ae;
   font-weight: 600;
   font-size: 0.82rem;
   padding: 0.4rem 0.75rem;
@@ -103,15 +116,15 @@ button:disabled {
 }
 
 .tab.on {
-  background: #6366f1;
-  color: #fff;
+  background: var(--primary);
+  color: #19140a;
 }
 
 .page-wide,
 .page-mid,
 .page-narrow {
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
+  padding: clamp(1.5rem, 4vw, 3rem) 1rem 4rem;
 }
 
 .page-wide {
@@ -134,14 +147,15 @@ button:disabled {
   display: inline-block;
   padding: 0.35rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(99, 102, 241, 0.35);
-  color: #a5b4fc;
+  border: 1px solid rgba(244, 185, 66, 0.35);
+  color: #f4c968;
   font-size: 0.82rem;
   font-weight: 600;
   margin-bottom: 1.25rem;
 }
 
 .hero {
+  font-family: var(--display-family);
   font-size: clamp(1.8rem, 5vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -180,8 +194,9 @@ button:disabled {
 .demo-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 0.9rem;
+  border-radius: 0.7rem;
   padding: 1.25rem;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
 }
 
 .demo-card {
@@ -204,7 +219,7 @@ button:disabled {
 }
 
 .kicker {
-  color: #818cf8;
+  color: var(--primary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -212,6 +227,7 @@ button:disabled {
 }
 
 .h2 {
+  font-family: var(--display-family);
   font-size: 1.55rem;
   font-weight: 800;
 }
@@ -264,7 +280,7 @@ button:disabled {
 }
 
 .label-lender {
-  color: #818cf8;
+  color: var(--mint);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -282,21 +298,21 @@ button:disabled {
 }
 
 .callout {
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: #5c4a1f;
+  border: 1px solid rgba(244, 185, 66, 0.25);
   border-radius: 0.75rem;
   padding: 0.9rem 1rem;
-  color: #c7d2fe;
+  color: #fff8e1;
   line-height: 1.5;
 }
 
 .why-box {
-  background: rgba(99, 102, 241, 0.08);
-  border-left: 3px solid #6366f1;
+  background: #4d3e1a;
+  border-left: 3px solid var(--primary);
   padding: 0.75rem 1rem;
   border-radius: 0.4rem;
   font-size: 0.85rem;
-  color: #a5b4fc;
+  color: #fff8e1;
   line-height: 1.45;
 }
 
@@ -338,16 +354,16 @@ button:disabled {
   text-align: left;
   padding: 0.8rem 1rem;
   border-radius: 0.65rem;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: #e2e8f0;
+  border: 1px solid #3a4942;
+  background: #111917;
+  color: #e4ebe6;
   font-weight: 600;
 }
 
 .chip-selected {
-  border-color: #6366f1;
-  background: #1e1b4b;
-  color: #fff;
+  border-color: var(--primary);
+  background: #6b541f;
+  color: #ffffff;
 }
 
 .tenure-table {
@@ -362,12 +378,12 @@ button:disabled {
   gap: 0.5rem;
   padding: 0.55rem 0.7rem;
   border-radius: 0.5rem;
-  background: #0f172a;
+  background: #111917;
   font-size: 0.9rem;
 }
 
 .tenure-row.on {
-  outline: 1px solid #6366f1;
+  outline: 1px solid var(--primary);
 }
 
 .plain-list {
@@ -475,6 +491,45 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
+  .topbar-inner {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .brand {
+    align-self: flex-start;
+  }
+  .tabs {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex: 1 0 auto;
+    min-height: 2.25rem;
+    white-space: nowrap;
+  }
+  .hero {
+    font-size: clamp(1.85rem, 9vw, 2.5rem);
+  }
+  .lede {
+    font-size: 0.98rem;
+  }
+  .card,
+  .mini-card,
+  .demo-card {
+    padding: 1rem;
+  }
+  .nav-row > .row-gap {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .nav-row > .row-gap > button {
+    flex: 1;
+  }
   .nego-grid {
     grid-template-columns: 1fr;
   }

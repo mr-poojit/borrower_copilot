@@ -10,7 +10,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'info' }) => {
     success: { backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)' },
     warning: { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' },
     danger: { backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' },
-    info: { backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.3)' },
+    info: { backgroundColor: 'rgba(244, 185, 66, 0.15)', color: '#f4c968', border: '1px solid rgba(244, 185, 66, 0.3)' },
   };
 
   return (

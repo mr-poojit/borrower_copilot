@@ -15,8 +15,8 @@ export const Select: React.FC<SelectProps> = ({ label, options, style, ...props 
           padding: '0.75rem 1rem',
           borderRadius: '0.5rem',
           border: '1px solid #334155',
-          backgroundColor: '#0f172a',
-          color: '#f8fafc',
+          backgroundColor: '#111917',
+          color: '#f4f1e8',
           fontSize: '1rem',
           outline: 'none',
           cursor: 'pointer',
@@ -24,8 +24,8 @@ export const Select: React.FC<SelectProps> = ({ label, options, style, ...props 
         }}
         {...props}
       >
-        {options.map((opt, i) => (
-          <option key={i} value={String(opt.value)}>
+        {options.map((opt) => (
+          <option key={String(opt.value)} value={String(opt.value)}>
             {opt.label}
           </option>
         ))}
